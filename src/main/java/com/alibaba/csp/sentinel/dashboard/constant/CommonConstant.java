@@ -15,6 +15,9 @@ public interface CommonConstant {
 
 	// 分组
 	String FLOW_GROUP = "FLOW_GROUP";
+	String SYSTEM_GROUP = "SYSTEM_GROUP";
+	String AUTHORITY_GROUP = "AUTHORITY_GROUP";
+	String PARAM_FLOW_GROUP = "PARAM_FLOW_GROUP";
 	String DEGRADE_GROUP = "DEGRADE_GROUP";
 	String NACOS_DEFAULT_GROUP = "DEFAULT_Group";
 
