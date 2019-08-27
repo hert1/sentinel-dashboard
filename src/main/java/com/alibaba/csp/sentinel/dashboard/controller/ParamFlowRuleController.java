@@ -76,6 +76,8 @@ public class ParamFlowRuleController {
     private AppManagement appManagement;
     @Autowired
     private RuleRepository<ParamFlowRuleEntity, Long> repository;
+    @Autowired
+    private SentinelApiClient sentinelApiClient;
 
     @Autowired
     private AuthService<HttpServletRequest> authService;
@@ -114,6 +116,7 @@ public class ParamFlowRuleController {
         }
         try {
             List<ParamFlowRuleEntity> rules = ruleProvider.getRules(app);
+            sentinelApiClient.setParamFlowRuleOfMachine(app, ip, port, rules);
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -268,7 +271,8 @@ public class ParamFlowRuleController {
 
     private void publishRules(String app, String ip, Integer port) throws Exception {
         List<ParamFlowRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
-         rulePublisher.publish(app, rules);
+        sentinelApiClient.setParamFlowRuleOfMachine(app, ip, port, rules);
+        rulePublisher.publish(app, rules);
     }
 
     private <R> Result<R> unsupportedVersion() {

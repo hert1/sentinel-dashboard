@@ -61,7 +61,8 @@ public class DegradeController {
     @Autowired
     @Qualifier("degradeRulePublisher")
     private DynamicRulePublisher<List<DegradeRuleEntity>> rulePublisher;
-
+    @Autowired
+    private SentinelApiClient sentinelApiClient;
     @Autowired
     private AuthService<HttpServletRequest> authService;
 
@@ -82,6 +83,7 @@ public class DegradeController {
         }
         try {
             List<DegradeRuleEntity> rules = ruleProvider.getRules(app);
+            sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -227,8 +229,9 @@ public class DegradeController {
         return Result.ofSuccess(id);
     }
 
-    private void publishRules(String app, String ip, Integer port) throws Exception {
+    private boolean publishRules(String app, String ip, Integer port) throws Exception {
         List<DegradeRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
         rulePublisher.publish(app, rules);
+        return sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
     }
 }

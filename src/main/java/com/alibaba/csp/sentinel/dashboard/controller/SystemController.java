@@ -59,6 +59,8 @@ public class SystemController {
     @Autowired
     @Qualifier("systemRulePublisher")
     private DynamicRulePublisher<List<SystemRuleEntity>> rulePublisher;
+    @Autowired
+    private SentinelApiClient sentinelApiClient;
 
     @Autowired
     private AuthService<HttpServletRequest> authService;
@@ -91,6 +93,7 @@ public class SystemController {
         }
         try {
             List<SystemRuleEntity> rules = ruleProvider.getRules(app);
+            sentinelApiClient.setSystemRuleOfMachine(app, ip, port, rules);
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -256,8 +259,9 @@ public class SystemController {
         return Result.ofSuccess(id);
     }
 
-    private void publishRules(String app, String ip, Integer port) throws Exception {
+    private boolean publishRules(String app, String ip, Integer port) throws Exception {
         List<SystemRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
         rulePublisher.publish(app, rules);
+        return sentinelApiClient.setSystemRuleOfMachine(app, ip, port, rules);
     }
 }
